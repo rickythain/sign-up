@@ -12,21 +12,19 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: SignUpPage(
-      ),
+      home: SignUpPage(),
     );
   }
 }
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({ Key? key }) : super(key: key);
+  const SignUpPage({Key? key}) : super(key: key);
 
   @override
   _SignUpPageState createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-
   List<String> genders = ['male', 'female', 'other', 'rather not say'];
   String? _gender;
 
@@ -46,7 +44,7 @@ class _SignUpPageState extends State<SignUpPage> {
     textControllerPassword.addListener(isFilled);
   }
 
-   @override
+  @override
   void dispose() {
     // Clean up the controller when the widget is removed from the
     // widget tree.
@@ -58,12 +56,14 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void isFilled() {
     setState(() {
-      if (textControllerName.text != "" && textControllerEmail.text != "" && textControllerPassword.text != "" && _gender != null) {
-      isDisbled = false;
-    } else {
-      isDisbled = true;
-    }
-
+      if (textControllerName.text != "" &&
+          textControllerEmail.text != "" &&
+          textControllerPassword.text != "" &&
+          _gender != null) {
+        isDisbled = false;
+      } else {
+        isDisbled = true;
+      }
     });
   }
 
@@ -72,10 +72,14 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       body: Center(
         child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-            Text("Welcome to Deriv", style: TextStyle(color: Colors.black, fontSize: 20),),
-            Image.network("https://tradingbrokers.com/wp-content/uploads/2020/11/Deriv-Logo.png"),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "Welcome to Deriv",
+              style: TextStyle(color: Colors.black, fontSize: 20),
+            ),
+            Image.network(
+                "https://tradingbrokers.com/wp-content/uploads/2020/11/Deriv-Logo.png"),
             TextField(
               decoration: const InputDecoration(
                 hintText: 'Name',
@@ -101,44 +105,38 @@ class _SignUpPageState extends State<SignUpPage> {
             Container(
               child: DropdownButton<String>(
                 value: _gender,
-                
-                items: <String>[
-                  'male',
-                  'female',
-                  'other',
-                  'rather not say'
-                ].map<DropdownMenuItem<String>>((String value) {
+                items: <String>['male', 'female', 'other', 'rather not say']
+                    .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
-                    );
+                  );
                 }).toList(),
-
-                hint: Text(
-                  "Select a gender"
-                ),
-                
+                hint: Text("Select a gender"),
                 onChanged: (String? value) {
                   setState(() {
                     _gender = value;
                   });
                 },
-                
-                ),
               ),
+            ),
             ElevatedButton(
-              onPressed: isDisbled ? null : () {
-                final snackBar = SnackBar(
-                  content: const Text('You have signed up successfully! :)'),
-                  );
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-              }, 
+              onPressed: isDisbled
+                  ? null
+                  : () {
+                      final snackBar = SnackBar(
+                        content:
+                            const Text('You have signed up successfully! :)'),
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    },
               child: const Text('Sign up'),
-              ),
+            ),
           ],
-    ),),);
-   
+        ),
+      ),
+    );
   }
 }
 
