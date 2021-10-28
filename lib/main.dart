@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+var userUsername;
+var userEmail;
+var userPassword;
+var userGender;
 
 void main() {
   runApp(MyApp());
@@ -17,6 +23,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Sign up page
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
 
@@ -28,11 +35,15 @@ class _SignUpPageState extends State<SignUpPage> {
   List<String> genders = ['male', 'female', 'other', 'rather not say'];
   String? _gender;
 
+  // text input controllers
   final textControllerName = TextEditingController();
   final textControllerEmail = TextEditingController();
   final textControllerPassword = TextEditingController();
 
+  // for sign up button
   bool isDisbled = true;
+  // for sign in button
+  bool isSignInDisabled = true;
 
   @override
   void initState() {
@@ -42,6 +53,8 @@ class _SignUpPageState extends State<SignUpPage> {
     textControllerName.addListener(isFilled);
     textControllerEmail.addListener(isFilled);
     textControllerPassword.addListener(isFilled);
+
+    loadUserData();
   }
 
   @override
@@ -54,6 +67,7 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
+  // enable or disable sign up button
   void isFilled() {
     setState(() {
       if (textControllerName.text != "" &&
@@ -65,6 +79,53 @@ class _SignUpPageState extends State<SignUpPage> {
         isDisbled = true;
       }
     });
+  }
+
+  // initialize variables when signing up
+  void signUp() {
+    userUsername = textControllerName.text;
+    userEmail = textControllerEmail.text;
+    userGender = _gender;
+    userPassword = textControllerPassword.text;
+
+    // call function to write data
+    writeUserData();
+  }
+
+  // load data from shared preferences
+  void loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      userUsername = prefs.getString('username');
+      userEmail = prefs.getString('email');
+      userGender = prefs.getString('gender');
+      userPassword = prefs.getString('password');
+    });
+
+    // if there is data, enable sign in button (if a user returns to sign up page from home page)
+    // also push to home page
+    if (prefs.getString('username') != "") {
+      isSignInDisabled = false;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    }
+  }
+
+  // write user data
+  void writeUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      prefs.setString('username', userUsername);
+      prefs.setString('email', userEmail);
+      prefs.setString('gender', userGender);
+      prefs.setString('password', userPassword);
+    });
+
+    isSignInDisabled = false;
   }
 
   @override
@@ -105,8 +166,7 @@ class _SignUpPageState extends State<SignUpPage> {
             Container(
               child: DropdownButton<String>(
                 value: _gender,
-                items: <String>['male', 'female', 'other', 'rather not say']
-                    .map<DropdownMenuItem<String>>((String value) {
+                items: genders.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
@@ -130,8 +190,27 @@ class _SignUpPageState extends State<SignUpPage> {
                       );
 
                       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                      );
+
+                      signUp();
                     },
               child: const Text('Sign up'),
+            ),
+            ElevatedButton(
+              onPressed: isSignInDisabled
+                  ? null
+                  : () {
+                      loadUserData();
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(builder: (context) => HomePage()),
+                      // );
+                    },
+              child: const Text('Sign In'),
             ),
           ],
         ),
@@ -140,20 +219,25 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  var infoTextStyle = TextStyle(color: Colors.black, fontSize: 20);
 
-  void _incrementCounter() {
+  // delete data from sharedPreferences
+  void removeUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    print("delete data");
     setState(() {
-      _counter++;
+      prefs.setString('username', "");
+      prefs.setString('email', "");
+      prefs.setString('gender', "");
+      prefs.setString('password', "");
     });
   }
 
@@ -161,27 +245,44 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text('Home'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+          children: [
+            Container(
+              child: Text(
+                "Hello Deriv",
+                style: TextStyle(fontSize: 30),
+              ),
+              margin: EdgeInsets.all(40),
             ),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              "Hello $userUsername",
+              style: infoTextStyle,
+            ),
+            Text(
+              "Emil: $userEmail",
+              style: infoTextStyle,
+            ),
+            Text(
+              "Gender: $userGender",
+              style: infoTextStyle,
+            ),
+            ElevatedButton(
+              onPressed: () {
+                removeUserData();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                );
+              },
+              child: const Text('Delete account'),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
